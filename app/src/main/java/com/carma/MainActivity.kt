@@ -78,6 +78,11 @@ fun CarmaWebView(url: String) {
                 // gerendert statt als SurfaceView — behebt das Überdeckungs-Problem
                 setLayerType(View.LAYER_TYPE_SOFTWARE, null)
 
+                // Autofill-Dienst deaktivieren: verhindert nativen Indikator-Strich
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO_EXCLUDE_DESCENDANTS
+                }
+
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
 

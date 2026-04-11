@@ -38,8 +38,8 @@ fun gitVersionName(): String {
 }
 
 fun dateFallback(): String {
-    val d = java.time.LocalDate.now()
-    return "${d.year}.${d.monthValue.toString().padStart(2, '0')}.${d.dayOfMonth.toString().padStart(2, '0')}"
+    val sdf = java.text.SimpleDateFormat("yyyy.MM.dd")
+    return sdf.format(java.util.Date())
 }
 
 android {

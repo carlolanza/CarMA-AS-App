@@ -1,3 +1,6 @@
+import java.text.SimpleDateFormat
+import java.util.Date
+
 // ============================================================
 // Datei:    build.gradle.kts
 // Autor:    Carlo
@@ -38,8 +41,7 @@ fun gitVersionName(): String {
 }
 
 fun dateFallback(): String {
-    val sdf = java.text.SimpleDateFormat("yyyy.MM.dd")
-    return sdf.format(java.util.Date())
+    return SimpleDateFormat("yyyy.MM.dd").format(Date())
 }
 
 android {

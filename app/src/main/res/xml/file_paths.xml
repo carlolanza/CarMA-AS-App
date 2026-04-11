@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    FileProvider-Pfade für APK-Download und -Installation.
+    external-files-path entspricht context.getExternalFilesDir(null).
+    Wird von installApk() in MainActivity.kt verwendet.
+-->
+<paths>
+    <external-files-path name="apk_downloads" path="." />
+</paths>

@@ -1,6 +1,45 @@
+// ============================================================
+// Datei:    build.gradle.kts
+// Autor:    Carlo
+// Erstellt: 2026-03-24
+// Version:  1.3
+// Projekt:  CarMa
+//
+// HISTORY:
+// 2026-04-11  v1.3  Automatische Versionierung über Git:
+//                   versionCode = Anzahl Git-Commits (git rev-list --count HEAD)
+//                   versionName = Git-Tag (z.B. 9.0.9) oder Datum (YYYY.MM.DD)
+// ============================================================
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+}
+
+fun gitVersionCode(): Int {
+    return try {
+        ProcessBuilder("git", "rev-list", "--count", "HEAD")
+            .directory(rootDir)
+            .start()
+            .inputStream.bufferedReader().readText().trim().toInt()
+    } catch (e: Exception) { 1 }
+}
+
+fun gitVersionName(): String {
+    return try {
+        val proc = ProcessBuilder("git", "describe", "--tags", "--abbrev=0")
+            .directory(rootDir)
+            .start()
+        proc.waitFor()
+        val tag = proc.inputStream.bufferedReader().readText().trim()
+        if (tag.isNotEmpty()) tag.removePrefix("v")
+        else dateFallback()
+    } catch (e: Exception) { dateFallback() }
+}
+
+fun dateFallback(): String {
+    val d = java.time.LocalDate.now()
+    return "${d.year}.${d.monthValue.toString().padStart(2, '0')}.${d.dayOfMonth.toString().padStart(2, '0')}"
 }
 
 android {
@@ -15,8 +54,8 @@ android {
         applicationId = "com.carma"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = gitVersionCode()
+        versionName = gitVersionName()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -36,6 +75,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true  // Für BuildConfig.VERSION_CODE im Auto-Update-Check
     }
 }
 

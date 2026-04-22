@@ -5,13 +5,15 @@ import java.util.Date
 // Datei:    build.gradle.kts
 // Autor:    Carlo
 // Erstellt: 2026-03-24
-// Version:  1.3
+// Stand:    1.0.3
 // Projekt:  CarMa
 //
 // HISTORY:
-// 2026-04-11  v1.3  Automatische Versionierung über Git:
-//                   versionCode = Anzahl Git-Commits (git rev-list --count HEAD)
-//                   versionName = Git-Tag (z.B. 9.0.9) oder Datum (YYYY.MM.DD)
+// 2026-04-11  v1.0.2  Automatische Versionierung über Git:
+//                     versionCode = Anzahl Git-Commits (git rev-list --count HEAD)
+//                     versionName = Git-Tag (z.B. 1.0.3) oder Datum (YYYY.MM.DD)
+// 2026-04-22  v1.0.3  Bug-Fix: Versionsbezeichnung korrigiert (1.3 → 1.0.3, Siemens-Standard)
+//                     androidVersion wird jetzt in version.json geschrieben
 // ============================================================
 
 plugins {

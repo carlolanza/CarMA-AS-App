@@ -2,11 +2,12 @@
 // Datei:    MainActivity.kt
 // Autor:    Carlo
 // Erstellt: 2026-03-24
-// Version:  1.3
+// Stand:    1.3
 // Projekt:  CarMa
 // Zweck:    WebView-Host; lädt CarMa Web-App
 //
 // HISTORY:
+// 2026-04-22  v1.3  Header: Stand statt Version; Versionsformat x.y.z → x.z
 // 2026-04-21  v1.3  Feature: JS-Interface "Android.closeApp()" — Web-App kann die Activity
 //                   beenden nach SW-Cache-Leerung (Service-Worker-Update-Flow)
 //                   APK-Banner entfernt — Update-Flow läuft vollständig über den

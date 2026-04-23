@@ -2,25 +2,23 @@
 // Datei:    MainActivity.kt
 // Autor:    Carlo
 // Erstellt: 2026-03-24
-// Stand:    1.4
+// Stand:    1.5
 // Projekt:  CarMa
 // Zweck:    WebView-Host; lädt CarMa Web-App
 //
 // HISTORY:
+// 2026-04-23  v1.5  APK Auto-Update: getVersionCode() + installApk(url) im JS-Interface —
+//                   Web-App prüft version.json und löst bei neuer Version Download+Install aus
 // 2026-04-23  v1.4  closeApp() startet App neu via FLAG_ACTIVITY_CLEAR_TASK + finishAffinity()
-//                   (war: nur finish() → App schloss sich ohne Neustart)
 // 2026-04-22  v1.3  Header: Stand statt Version; Versionsformat x.y.z → x.z
-// 2026-04-21  v1.3  Feature: JS-Interface "Android.closeApp()" — Web-App kann die Activity
-//                   beenden nach SW-Cache-Leerung (Service-Worker-Update-Flow)
-//                   APK-Banner entfernt — Update-Flow läuft vollständig über den
-//                   Web-Service-Worker-Banner (kein nativer Compose-Banner mehr)
-// 2026-04-11  v1.2  Bug-Fix: WebView cached JS/CSS → Speicher löschen nötig nach Web-Deploy
-//                   Lösung: LOAD_NO_CACHE — WebView ignoriert lokalen Cache, lädt immer frisch
+// 2026-04-21  v1.3  Feature: JS-Interface "Android.closeApp()"
+// 2026-04-11  v1.2  Bug-Fix: LOAD_NO_CACHE — WebView ignoriert lokalen Cache
 // 2026-04-11  v1.1  Feature: Auto-Update (entfernt in v1.3)
 // ============================================================
 package com.carma
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -46,8 +44,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.WindowCompat
 import com.carma.ui.theme.CarmaTheme
+import java.io.File
+import java.net.URL
 
 private const val APP_URL = "https://carma-f4d4f.web.app"
 
@@ -133,12 +134,42 @@ fun CarmaWebView(
                 // Kein lokaler HTTP-Cache: WebView lädt bei jedem Start frisch von Firebase.
                 settings.cacheMode = android.webkit.WebSettings.LOAD_NO_CACHE
 
-                // JS-Interface: window.Android.closeApp() beendet die Activity.
-                // Wird vom Web-Banner nach SW-Cache-Leerung aufgerufen.
+                // JS-Interface: Einheitliches Android-Bridge für Web-App
                 addJavascriptInterface(object : Any() {
+                    // SW-Update: Cache leeren + App neu starten
                     @JavascriptInterface
                     fun closeApp() {
                         android.os.Handler(android.os.Looper.getMainLooper()).post { onCloseApp() }
+                    }
+
+                    // APK-Version der installierten App zurückgeben
+                    @JavascriptInterface
+                    fun getVersionCode(): Int = BuildConfig.VERSION_CODE
+
+                    // APK im Hintergrund herunterladen und System-Installer starten
+                    @JavascriptInterface
+                    fun installApk(apkUrl: String) {
+                        Thread {
+                            try {
+                                val apkFile = File(context.getExternalFilesDir(null), "update.apk")
+                                URL(apkUrl).openStream().use { input ->
+                                    apkFile.outputStream().use { output -> input.copyTo(output) }
+                                }
+                                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                                    val uri = FileProvider.getUriForFile(
+                                        context, "${context.packageName}.provider", apkFile
+                                    )
+                                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                                        setDataAndType(uri, "application/vnd.android.package-archive")
+                                        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                                                Intent.FLAG_ACTIVITY_NEW_TASK
+                                    }
+                                    context.startActivity(intent)
+                                }
+                            } catch (e: Exception) {
+                                Log.e("AutoUpdate", "APK-Download fehlgeschlagen: ${e.message}")
+                            }
+                        }.start()
                     }
                 }, "Android")
 

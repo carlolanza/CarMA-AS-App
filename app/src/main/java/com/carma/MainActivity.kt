@@ -2,11 +2,13 @@
 // Datei:    MainActivity.kt
 // Autor:    Carlo
 // Erstellt: 2026-03-24
-// Stand:    1.3
+// Stand:    1.4
 // Projekt:  CarMa
 // Zweck:    WebView-Host; lädt CarMa Web-App
 //
 // HISTORY:
+// 2026-04-23  v1.4  closeApp() startet App neu via FLAG_ACTIVITY_CLEAR_TASK + finishAffinity()
+//                   (war: nur finish() → App schloss sich ohne Neustart)
 // 2026-04-22  v1.3  Header: Stand statt Version; Versionsformat x.y.z → x.z
 // 2026-04-21  v1.3  Feature: JS-Interface "Android.closeApp()" — Web-App kann die Activity
 //                   beenden nach SW-Cache-Leerung (Service-Worker-Update-Flow)
@@ -81,7 +83,12 @@ class MainActivity : ComponentActivity() {
                             .statusBarsPadding()
                             .navigationBarsPadding(),
                         url = APP_URL,
-                        onCloseApp = { finish() },
+                        onCloseApp = {
+                            val intent = packageManager.getLaunchIntentForPackage(packageName)
+                            intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                            intent?.let { startActivity(it) }
+                            finishAffinity()
+                        },
                         onFileChooserRequest = { callback ->
                             filePathCallback?.onReceiveValue(null)
                             filePathCallback = callback

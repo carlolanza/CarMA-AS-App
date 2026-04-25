@@ -2,11 +2,13 @@
 // Datei:    MainActivity.kt
 // Autor:    Carlo
 // Erstellt: 2026-03-24
-// Stand:    1.5
+// Stand:    1.6
 // Projekt:  CarMa
 // Zweck:    WebView-Host; lädt CarMa Web-App
 //
 // HISTORY:
+// 2026-04-25  v1.6  Bug-Fix: getVersionName() im JS-Interface — Web-App kann
+//                   installierte Version im APK-Update-Banner anzeigen (war leer)
 // 2026-04-23  v1.5  APK Auto-Update: getVersionCode() + installApk(url) im JS-Interface —
 //                   Web-App prüft version.json und löst bei neuer Version Download+Install aus
 // 2026-04-23  v1.4  closeApp() startet App neu via FLAG_ACTIVITY_CLEAR_TASK + finishAffinity()
@@ -142,9 +144,13 @@ fun CarmaWebView(
                         android.os.Handler(android.os.Looper.getMainLooper()).post { onCloseApp() }
                     }
 
-                    // APK-Version der installierten App zurückgeben
+                    // APK-Versionscode der installierten App zurückgeben
                     @JavascriptInterface
                     fun getVersionCode(): Int = BuildConfig.VERSION_CODE
+
+                    // APK-Versionsname der installierten App zurückgeben (z.B. "1.0")
+                    @JavascriptInterface
+                    fun getVersionName(): String = BuildConfig.VERSION_NAME
 
                     // APK im Hintergrund herunterladen und System-Installer starten
                     @JavascriptInterface

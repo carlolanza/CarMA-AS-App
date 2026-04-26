@@ -2,11 +2,14 @@
 // Datei:    MainActivity.kt
 // Autor:    Carlo
 // Erstellt: 2026-03-24
-// Stand:    1.6
+// Stand:    1.7
 // Projekt:  CarMa
 // Zweck:    WebView-Host; lädt CarMa Web-App
 //
 // HISTORY:
+// 2026-04-26  v1.7  closeApp()-JS-Interface entfernt — Web-Update-Flow obsolet, da der
+//                   WebView mit LOAD_NO_CACHE bei jedem App-Start frisch lädt.
+//                   APK-Update-Pfad (getVersionCode/getVersionName/installApk) bleibt.
 // 2026-04-25  v1.6  Bug-Fix: getVersionName() im JS-Interface — Web-App kann
 //                   installierte Version im APK-Update-Banner anzeigen (war leer)
 // 2026-04-23  v1.5  APK Auto-Update: getVersionCode() + installApk(url) im JS-Interface —
@@ -86,12 +89,6 @@ class MainActivity : ComponentActivity() {
                             .statusBarsPadding()
                             .navigationBarsPadding(),
                         url = APP_URL,
-                        onCloseApp = {
-                            val intent = packageManager.getLaunchIntentForPackage(packageName)
-                            intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                            intent?.let { startActivity(it) }
-                            finishAffinity()
-                        },
                         onFileChooserRequest = { callback ->
                             filePathCallback?.onReceiveValue(null)
                             filePathCallback = callback
@@ -116,7 +113,6 @@ class MainActivity : ComponentActivity() {
 fun CarmaWebView(
     modifier: Modifier = Modifier,
     url: String,
-    onCloseApp: () -> Unit = {},
     onFileChooserRequest: (ValueCallback<Array<Uri>>?) -> Unit
 ) {
     AndroidView(
@@ -136,14 +132,8 @@ fun CarmaWebView(
                 // Kein lokaler HTTP-Cache: WebView lädt bei jedem Start frisch von Firebase.
                 settings.cacheMode = android.webkit.WebSettings.LOAD_NO_CACHE
 
-                // JS-Interface: Einheitliches Android-Bridge für Web-App
+                // JS-Interface: APK-Update-Bridge für Web-App
                 addJavascriptInterface(object : Any() {
-                    // SW-Update: Cache leeren + App neu starten
-                    @JavascriptInterface
-                    fun closeApp() {
-                        android.os.Handler(android.os.Looper.getMainLooper()).post { onCloseApp() }
-                    }
-
                     // APK-Versionscode der installierten App zurückgeben
                     @JavascriptInterface
                     fun getVersionCode(): Int = BuildConfig.VERSION_CODE
